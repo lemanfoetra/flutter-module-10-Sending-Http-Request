@@ -48,32 +48,33 @@ class ProductsProvider with ChangeNotifier {
     return [..._items.where((data) => data.isFavorite == true)];
   }
 
-
   void addProduct(Product product) {
-
     // contoh melakukan post request
-    const url =  "https://flutter-shopapps.firebaseio.com/product.json";
-    http.post(
-      url,
-      body: json.encode({
-        'title': product.title,
-        'description': product.description,
-        'price': product.price,
-        'imageUrl': product.imageUrl,
-        'isFavorite': product.isFavorite,
-      })
+    const url = "https://flutter-shopapps.firebaseio.com/product.json";
+    http
+        .post(url,
+            body: json.encode({
+              'title': product.title,
+              'description': product.description,
+              'price': product.price,
+              'imageUrl': product.imageUrl,
+              'isFavorite': product.isFavorite,
+            }))
+        .then(
+      (response) {
+        
+        Product _newProduct = Product(
+          id: json.decode(response.body)['name'],
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          imageUrl: product.imageUrl,
+        );
+        // Insert sebagai list pertama
+        _items.insert(0, _newProduct);
+        
+      },
     );
-
-
-    Product _newProduct = Product(
-      id: DateTime.now().toString(),
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      imageUrl: product.imageUrl,
-    );
-    // Insert sebagai list pertama
-    _items.insert(0, _newProduct);
 
     //BERFUNGSI UNTUK MEMBERITAHUKAN BAHWA ADA DATA BARU SEHINGGA WIDGET AKAN DI RE-RENDER
     notifyListeners();
@@ -83,20 +84,16 @@ class ProductsProvider with ChangeNotifier {
     return items.firstWhere((data) => data.id == id);
   }
 
-
-  void editProduct(String id, Product product){
-    if(id != null){
+  void editProduct(String id, Product product) {
+    if (id != null) {
       var index = _items.indexWhere((data) => data.id == id);
       _items[index] = product;
       notifyListeners();
     }
   }
 
-
-  void deleteProduct(String id){
-    _items.removeWhere((data)=> data.id == id);
+  void deleteProduct(String id) {
+    _items.removeWhere((data) => data.id == id);
     notifyListeners();
   }
-
-
 }
