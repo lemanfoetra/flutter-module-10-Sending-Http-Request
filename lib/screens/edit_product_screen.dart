@@ -28,6 +28,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
   bool onFirstDipLoad = true;
   Product _productData;
 
+  bool _loadingIsOpen = false;
+
   // FUNCTION
   void _simpanForm(BuildContext scaffoldContext) {
     // Deklarasikan ini agar validate berjalan
@@ -46,16 +48,26 @@ class _EditProductScreenState extends State<EditProductScreen> {
       );
 
       // Add or Edit Product
+      setState(() {
+        _loadingIsOpen = true;
+      });
+
       if (_productId == null) {
         Provider.of<ProductsProvider>(context, listen: false)
-            .addProduct(_productData);
-            _munculkanSnackBar(scaffoldContext, 'Product Added');
+            .addProduct(_productData)
+            .then((_) {
+            setState(
+              () {
+                _loadingIsOpen = false;
+              },
+            );
+            Navigator.of(context).pop();
+          },
+        );
       } else {
         Provider.of<ProductsProvider>(context, listen: false)
             .editProduct(_productId, _productData);
-            _munculkanSnackBar(scaffoldContext, 'Product Edited' );
       }
-
     }
   }
 
@@ -72,16 +84,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
     );
   }
 
-
   // WIDGET
-  void _munculkanSnackBar(BuildContext context, String title) {
-    Scaffold.of(context).showSnackBar(
-      SnackBar(
-        content: Text(title),
-        duration: Duration(seconds: 3),
-      ),
-    );
-  }
+  // void _munculkanSnackBar(BuildContext context, String title) {
+  //   Scaffold.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(title),
+  //       duration: Duration(seconds: 3),
+  //     ),
+  //   );
+  // }
 
   // dispose() dijalankan ketika state widget dihancurkan
   @override
@@ -130,153 +141,159 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                // untuk title
-                TextFormField(
-                  initialValue: _title,
-                  decoration: InputDecoration(labelText: "Title"),
-                  textInputAction: TextInputAction.next,
+      body: _loadingIsOpen
+          // indikator loading
+          ? Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: <Widget>[
+                      // untuk title
+                      TextFormField(
+                        initialValue: _title,
+                        decoration: InputDecoration(labelText: "Title"),
+                        textInputAction: TextInputAction.next,
 
-                  // Ketika tombol enter ditekan
-                  onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_focusPrice);
-                  },
-                  // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
-                  onSaved: (value) {
-                    _title = value;
-                  },
-
-                  // gunakan validator untuk validasi. return null = true, return string = false
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return "Title Perlu Disi";
-                    }
-                    return null;
-                  },
-                ),
-
-                // untuk price (harga)
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Price"),
-                  initialValue: _price,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType
-                      .number, // Untuk meng set type Input keyboard
-                  focusNode: _focusPrice,
-                  onFieldSubmitted: (_) {
-                    FocusScope.of(context).requestFocus(_focusNodeDescription);
-                  },
-                  // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
-                  onSaved: (value) {
-                    if (value.isEmpty) {
-                      _price = '';
-                    } else {
-                      _price = value;
-                    }
-                  },
-
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return "Price perlu diisi.";
-                    }
-                    return null;
-                  },
-                ),
-
-                // unutk deskripsi
-                TextFormField(
-                  decoration: InputDecoration(labelText: "Description"),
-                  initialValue: _description,
-                  keyboardType: TextInputType.multiline,
-                  maxLines: 3, // berarti 3 baris
-                  focusNode: _focusNodeDescription,
-                  // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
-                  onSaved: (value) {
-                    _description = value;
-                  },
-
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return "Description Perlu diisi";
-                    }
-                    return null;
-                  },
-                ),
-
-                // untuk gambar
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.only(top: 10, right: 15),
-                      height: 100,
-                      width: 100,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey, width: 1),
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                      ),
-                      child: !isInputUrlImage
-                          ? Center(
-                              child: Text('No Image'),
-                            )
-                          : Image.network(
-                              _imgUrlController.text,
-                              fit: BoxFit.cover,
-
-                              // menampilkan loading ketika image dimuata
-                              loadingBuilder: (ctx, child, loadingProgress) {
-                                if (loadingProgress == null) {
-                                  return child;
-                                } else {
-                                  return _onLoadImage(loadingProgress);
-                                }
-                              },
-                            ),
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        keyboardType: TextInputType.url,
-                        decoration: InputDecoration(labelText: 'Image Url'),
-                        controller: _imgUrlController,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (isi) {
-                          setState(() {
-                            if (_imgUrlController.text.isEmpty) {
-                              isInputUrlImage = false;
-                            } else {
-                              isInputUrlImage = true;
-                            }
-                          });
+                        // Ketika tombol enter ditekan
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_focusPrice);
                         },
-
                         // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
                         onSaved: (value) {
-                          _imgUrl = value;
+                          _title = value;
                         },
 
+                        // gunakan validator untuk validasi. return null = true, return string = false
                         validator: (value) {
                           if (value.isEmpty) {
-                            return "Image perlu diisi.";
+                            return "Title Perlu Disi";
                           }
                           return null;
                         },
                       ),
-                    ),
-                  ],
-                )
-              ],
+
+                      // untuk price (harga)
+                      TextFormField(
+                        decoration: InputDecoration(labelText: "Price"),
+                        initialValue: _price,
+                        textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType
+                            .number, // Untuk meng set type Input keyboard
+                        focusNode: _focusPrice,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context)
+                              .requestFocus(_focusNodeDescription);
+                        },
+                        // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
+                        onSaved: (value) {
+                          if (value.isEmpty) {
+                            _price = '';
+                          } else {
+                            _price = value;
+                          }
+                        },
+
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "Price perlu diisi.";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      // unutk deskripsi
+                      TextFormField(
+                        decoration: InputDecoration(labelText: "Description"),
+                        initialValue: _description,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: 3, // berarti 3 baris
+                        focusNode: _focusNodeDescription,
+                        // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
+                        onSaved: (value) {
+                          _description = value;
+                        },
+
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return "Description Perlu diisi";
+                          }
+                          return null;
+                        },
+                      ),
+
+                      // untuk gambar
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: <Widget>[
+                          Container(
+                            margin: EdgeInsets.only(top: 10, right: 15),
+                            height: 100,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey, width: 1),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(5),
+                              ),
+                            ),
+                            child: !isInputUrlImage
+                                ? Center(
+                                    child: Text('No Image'),
+                                  )
+                                : Image.network(
+                                    _imgUrlController.text,
+                                    fit: BoxFit.cover,
+
+                                    // menampilkan loading ketika image dimuata
+                                    loadingBuilder:
+                                        (ctx, child, loadingProgress) {
+                                      if (loadingProgress == null) {
+                                        return child;
+                                      } else {
+                                        return _onLoadImage(loadingProgress);
+                                      }
+                                    },
+                                  ),
+                          ),
+                          Expanded(
+                            child: TextFormField(
+                              keyboardType: TextInputType.url,
+                              decoration:
+                                  InputDecoration(labelText: 'Image Url'),
+                              controller: _imgUrlController,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (isi) {
+                                setState(() {
+                                  if (_imgUrlController.text.isEmpty) {
+                                    isInputUrlImage = false;
+                                  } else {
+                                    isInputUrlImage = true;
+                                  }
+                                });
+                              },
+
+                              // bisa gunakan onSaved() untuk menyimpan datanya ketika di submit
+                              onSaved: (value) {
+                                _imgUrl = value;
+                              },
+
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return "Image perlu diisi.";
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -48,10 +48,10 @@ class ProductsProvider with ChangeNotifier {
     return [..._items.where((data) => data.isFavorite == true)];
   }
 
-  void addProduct(Product product) {
+  Future<void> addProduct(Product product) {
     // contoh melakukan post request
     const url = "https://flutter-shopapps.firebaseio.com/product.json";
-    http
+    return http
         .post(url,
             body: json.encode({
               'title': product.title,
