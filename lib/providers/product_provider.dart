@@ -48,9 +48,21 @@ class ProductsProvider with ChangeNotifier {
     return [..._items.where((data) => data.isFavorite == true)];
   }
 
+  // GET DATA DARI FIREBASE
+  Future<void> getListProduct() async {
+    const url = "https://flutter-shopapps.firebaseio.com/product.json";
+
+    try {
+      final response = await http.get(url);
+      print(json.decode(response.body));
+    } catch (error) {
+      throw error;
+    }
+  }
+
   Future<void> addProduct(Product product) async {
     // contoh melakukan post request
-    const url = "https://flutter-shopapps.firebaseio.com/product";
+    const url = "https://flutter-shopapps.firebaseio.com/product.json";
 
     try {
       final response = await http.post(

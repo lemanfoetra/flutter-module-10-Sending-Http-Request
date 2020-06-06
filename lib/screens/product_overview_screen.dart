@@ -7,6 +7,7 @@ import '../widgets/app_drawer.dart';
 import '../widgets/badge.dart';
 import '../widgets/product_grid.dart';
 import '../providers/chart_provider.dart';
+import '../providers/product_provider.dart';
 
 enum FilterOptions {
   Favorites,
@@ -20,6 +21,21 @@ class ProductOverviewScreeen extends StatefulWidget {
 
 class _ProductOverviewScreeenState extends State<ProductOverviewScreeen> {
   bool onlyFavorite = false;
+  bool isInit = true;
+
+
+  @override
+  void didChangeDependencies() {
+
+    if(isInit){
+      var productPv = Provider.of<ProductsProvider>(context);
+      productPv.getListProduct();
+    }
+    
+    isInit = false;
+    super.didChangeDependencies();
+  }
+
 
   void setOnlyFavorite(bool status) {
     setState(() {
