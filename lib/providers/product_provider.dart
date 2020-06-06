@@ -62,7 +62,6 @@ class ProductsProvider with ChangeNotifier {
             }))
         .then(
       (response) {
-        
         Product _newProduct = Product(
           id: json.decode(response.body)['name'],
           title: product.title,
@@ -72,12 +71,13 @@ class ProductsProvider with ChangeNotifier {
         );
         // Insert sebagai list pertama
         _items.insert(0, _newProduct);
-        
       },
-    );
+    ).catchError((onError) {
+      throw onError;
+    });
 
     //BERFUNGSI UNTUK MEMBERITAHUKAN BAHWA ADA DATA BARU SEHINGGA WIDGET AKAN DI RE-RENDER
-    notifyListeners();
+    notifyListeners(); 
   }
 
   Product findById(String id) {

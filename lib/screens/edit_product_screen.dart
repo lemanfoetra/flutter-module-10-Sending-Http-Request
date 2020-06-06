@@ -55,18 +55,43 @@ class _EditProductScreenState extends State<EditProductScreen> {
       if (_productId == null) {
         Provider.of<ProductsProvider>(context, listen: false)
             .addProduct(_productData)
-            .then((_) {
-            setState(
-              () {
-                _loadingIsOpen = false;
-              },
-            );
+            .then(
+          (_) {
+            setState(() {
+              _loadingIsOpen = false;
+            });
             Navigator.of(context).pop();
           },
+
+          // ketika terjadi error
+        ).catchError(
+          (error) {
+            return showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text("Warning"),
+                content: Text("Terjadi Kesalahan Jaringan"),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      setState(() {
+                        _loadingIsOpen = false;
+                      });
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
         );
+
+        // Edit product
       } else {
         Provider.of<ProductsProvider>(context, listen: false)
             .editProduct(_productId, _productData);
+        Navigator.of(context).pop();
       }
     }
   }
