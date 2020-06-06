@@ -48,36 +48,37 @@ class ProductsProvider with ChangeNotifier {
     return [..._items.where((data) => data.isFavorite == true)];
   }
 
-  Future<void> addProduct(Product product) {
+  Future<void> addProduct(Product product) async {
     // contoh melakukan post request
-    const url = "https://flutter-shopapps.firebaseio.com/product.json";
-    return http
-        .post(url,
-            body: json.encode({
-              'title': product.title,
-              'description': product.description,
-              'price': product.price,
-              'imageUrl': product.imageUrl,
-              'isFavorite': product.isFavorite,
-            }))
-        .then(
-      (response) {
-        Product _newProduct = Product(
-          id: json.decode(response.body)['name'],
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          imageUrl: product.imageUrl,
-        );
-        // Insert sebagai list pertama
-        _items.insert(0, _newProduct);
-      },
-    ).catchError((onError) {
-      throw onError;
-    });
+    const url = "https://flutter-shopapps.firebaseio.com/product";
+
+    try {
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'title': product.title,
+          'description': product.description,
+          'price': product.price,
+          'imageUrl': product.imageUrl,
+          'isFavorite': product.isFavorite,
+        }),
+      );
+
+      Product _newProduct = Product(
+        id: json.decode(response.body)['name'],
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+      );
+      // Insert sebagai list pertama
+      _items.insert(0, _newProduct);
+    } catch (error) {
+      throw error;
+    }
 
     //BERFUNGSI UNTUK MEMBERITAHUKAN BAHWA ADA DATA BARU SEHINGGA WIDGET AKAN DI RE-RENDER
-    notifyListeners(); 
+    notifyListeners();
   }
 
   Product findById(String id) {

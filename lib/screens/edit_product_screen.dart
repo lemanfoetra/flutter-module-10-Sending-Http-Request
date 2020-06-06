@@ -31,7 +31,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   bool _loadingIsOpen = false;
 
   // FUNCTION
-  void _simpanForm(BuildContext scaffoldContext) {
+  Future<void> _simpanForm(BuildContext scaffoldContext) async {
     // Deklarasikan ini agar validate berjalan
     bool isValid = _formKey.currentState.validate();
     if (isValid) {
@@ -53,39 +53,36 @@ class _EditProductScreenState extends State<EditProductScreen> {
       });
 
       if (_productId == null) {
-        Provider.of<ProductsProvider>(context, listen: false)
-            .addProduct(_productData)
-            .then(
-          (_) {
-            setState(() {
-              _loadingIsOpen = false;
-            });
-            Navigator.of(context).pop();
-          },
+        try {
+          await Provider.of<ProductsProvider>(context, listen: false)
+              .addProduct(_productData);
 
           // ketika terjadi error
-        ).catchError(
-          (error) {
-            return showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text("Warning"),
-                content: Text("Terjadi Kesalahan Jaringan"),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('OK'),
-                    onPressed: () {
-                      setState(() {
-                        _loadingIsOpen = false;
-                      });
-                      Navigator.of(ctx).pop();
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+        } catch (error) {
+          // di await dulu supaya gak langsung eksekusi finally
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text("Warning"),
+              content: Text(error.toString()), // sebaiknya pesan error di custom
+              actions: <Widget>[
+                FlatButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                ),
+              ],
+            ),
+          );
+
+          // akan di proses baik ada error maupun belum
+        } finally {
+          setState(() {
+            _loadingIsOpen = false;
+          });
+           Navigator.of(context).pop();
+        }
 
         // Edit product
       } else {
