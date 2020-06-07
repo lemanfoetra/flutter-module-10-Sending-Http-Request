@@ -121,4 +121,10 @@ class ProductsProvider with ChangeNotifier {
     _items.removeWhere((data) => data.id == id);
     notifyListeners();
   }
+
+
+  void bersihkanItems(){
+    _items = [];
+    notifyListeners();
+  }
 }
