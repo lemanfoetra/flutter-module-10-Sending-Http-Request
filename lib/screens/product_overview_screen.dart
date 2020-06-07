@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
 import '../screens/cart_screen.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/badge.dart';
@@ -23,19 +22,26 @@ class _ProductOverviewScreeenState extends State<ProductOverviewScreeen> {
   bool onlyFavorite = false;
   bool isInit = true;
 
+  // _isloading untuk mengaktifkan loading indicator
+  bool _isloading = false;
 
   @override
   void didChangeDependencies() {
-
-    if(isInit){
+    if (isInit) {
+      setState(() {
+         _isloading = true;
+      });
       var productPv = Provider.of<ProductsProvider>(context);
-      productPv.getListProduct();
+      productPv.getListProduct().then((_) {
+        setState(() {
+          _isloading = false;
+        });
+      });
     }
-    
+
     isInit = false;
     super.didChangeDependencies();
   }
-
 
   void setOnlyFavorite(bool status) {
     setState(() {
@@ -91,9 +97,11 @@ class _ProductOverviewScreeenState extends State<ProductOverviewScreeen> {
         ],
       ),
       drawer: AppDrawers(),
-      body: ProductGrid(
-        isOnlyFavorite: onlyFavorite,
-      ),
+      body: _isloading
+          ? Center(child: CircularProgressIndicator())
+          : ProductGrid(
+              isOnlyFavorite: onlyFavorite,
+            ),
     );
   }
 }
