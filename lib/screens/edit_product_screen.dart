@@ -53,44 +53,49 @@ class _EditProductScreenState extends State<EditProductScreen> {
       });
 
       if (_productId == null) {
+        // Add product
         try {
           await Provider.of<ProductsProvider>(context, listen: false)
               .addProduct(_productData);
-
-          // ketika terjadi error
         } catch (error) {
-          // di await dulu supaya gak langsung eksekusi finally
-          await showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text("Warning"),
-              content: Text(error.toString()), // sebaiknya pesan error di custom
-              actions: <Widget>[
-                FlatButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                ),
-              ],
-            ),
-          );
-
-          // akan di proses baik ada error maupun belum
-        } finally {
-          setState(() {
-            _loadingIsOpen = false;
-          });
-           Navigator.of(context).pop();
+          await showDialogError(context);
         }
 
         // Edit product
       } else {
-        Provider.of<ProductsProvider>(context, listen: false)
-            .editProduct(_productId, _productData);
-        Navigator.of(context).pop();
+        try {
+          await Provider.of<ProductsProvider>(context, listen: false)
+              .editProduct(_productId, _productData);
+        } catch (error) {
+          await showDialogError(context);
+        }
       }
+
+      setState(() {
+        _loadingIsOpen = false;
+      });
+      Navigator.of(context).pop();
     }
+  }
+
+  // WIDGET
+  // dialog ketika terjadi error
+  Future<void> showDialogError(BuildContext contextt) async {
+    await showDialog(
+      context: contextt,
+      builder: (ctx) => AlertDialog(
+        content:
+            Text("Up ada yang salah :("), // sebaiknya pesan error di custom
+        actions: <Widget>[
+          FlatButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   // WIDGET

@@ -109,8 +109,18 @@ class ProductsProvider with ChangeNotifier {
     return items.firstWhere((data) => data.id == id);
   }
 
-  void editProduct(String id, Product product) {
+  Future<void> editProduct(String id, Product product) async {
     if (id != null) {
+      final url = "https://flutter-shopapps.firebaseio.com/product/$id.json";
+      await http.patch(
+        url,
+        body: json.encode({
+          "title": product.title,
+          "description": product.description,
+          "price": product.price,
+          "imageUrl": product.imageUrl,
+        }),
+      );
       var index = _items.indexWhere((data) => data.id == id);
       _items[index] = product;
       notifyListeners();
@@ -122,8 +132,7 @@ class ProductsProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-  void bersihkanItems(){
+  void bersihkanItems() {
     _items = [];
     notifyListeners();
   }
