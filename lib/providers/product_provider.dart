@@ -127,9 +127,19 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((data) => data.id == id);
-    notifyListeners();
+  Future<void> deleteProduct(String id) async {
+    try {
+      final url = "https://flutter-shopapps.firebaseio.com/product/$id.json";
+      final response = await http.delete(url);
+      if (response.statusCode >= 400) {
+        throw "Deleting failed, code : ${response.statusCode}";
+      } else {
+        _items.removeWhere((data) => data.id == id);
+        notifyListeners();
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
   void bersihkanItems() {

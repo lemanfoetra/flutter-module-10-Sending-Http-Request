@@ -12,6 +12,10 @@ class UserProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    // bikin scaffold object
+    final scaffold = Scaffold.of(context);
+    
     return Flex(
       direction: Axis.vertical,
       children: <Widget>[
@@ -36,9 +40,20 @@ class UserProductItem extends StatelessWidget {
                     Icons.delete,
                     color: Colors.red,
                   ),
-                  onPressed: () {
-                    Provider.of<ProductsProvider>(context)
-                        .deleteProduct(productId);
+                  onPressed: () async {
+                    try {
+                      await Provider.of<ProductsProvider>(context)
+                          .deleteProduct(productId);
+                    } catch (error) {
+                      scaffold.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            error.toString(),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
               ],
