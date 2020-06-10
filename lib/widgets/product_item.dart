@@ -15,6 +15,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final dataProduct = Provider.of<Product>(context, listen: false);
     final dataChart = Provider.of<ChartProvider>(context, listen: false);
+    final objScaffold = Scaffold.of(context);
 
     return InkWell(
       onTap: () {
@@ -48,8 +49,15 @@ class ProductItem extends StatelessWidget {
                       : Icons.favorite_border,
                   color: Colors.red,
                 ),
-                onPressed: () {
-                  dataProduct.setFavorite();
+                onPressed: () async {
+                  try {
+                    await dataProduct.setFavorite();
+                  } catch (error) {
+                    objScaffold.showSnackBar(
+                      SnackBar(
+                          content: Text(error, textAlign: TextAlign.center)),
+                    );
+                  }
                 },
               ),
             ),
