@@ -63,6 +63,7 @@ class ProductsProvider with ChangeNotifier {
           imageUrl: value['imageUrl'],
           price: value['price'],
           title: value['title'],
+          isFavorite: value['isFavorite'],
         ));
       });
       _items = newData;
