@@ -41,26 +41,7 @@ class CartScreen extends StatelessWidget {
                     ),
                     backgroundColor: Theme.of(context).primaryColor,
                   ),
-                  FlatButton(
-                    onPressed: () {
-                      // Menambahkan items Chart ke Orders
-                      Provider.of<OrdersProvider>(context).addOrder(
-                        chartObject.items.values.toList(),
-                        chartObject.totalPrice,
-                      );
-
-                      // Menghapus Chart Item
-                      chartObject.clear();
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        Text('Proses Transaksi',
-                            style: TextStyle(fontSize: 16)),
-                        Icon(Icons.arrow_right)
-                      ],
-                    ),
-                  )
+                  OrderButton(chartObject: chartObject)
                 ],
               ),
             ),
@@ -95,7 +76,6 @@ class CartScreen extends StatelessWidget {
                     chartObject.removeItem(productId);
                   },
                   confirmDismiss: (direction) {
-
                     // Alert Dialog
                     return showDialog(
                       context: context,
@@ -114,7 +94,6 @@ class CartScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                    
                   },
                   child: ChartItemWidget.ChartItem(
                     id: chartId,
@@ -129,5 +108,69 @@ class CartScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key key,
+    @required this.chartObject,
+  }) : super(key: key);
+
+  final ChartProvider chartObject;
+
+  @override
+  _OrderButtonState createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    return _isLoading
+        ? Container(
+          padding: EdgeInsets.only(
+            left: 50, right: 20, top: 5, bottom: 5
+          ),
+          child: CircularProgressIndicator(),
+        )
+        : FlatButton(
+            onPressed: widget.chartObject.items.length <= 0 ? null : () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              try {
+                // Menambahkan items Chart ke Orders
+                await Provider.of<OrdersProvider>(context, listen: false).addOrder(
+                  widget.chartObject.items.values.toList(),
+                  widget.chartObject.totalPrice,
+                );
+
+                setState(() {
+                  _isLoading = false;
+                });
+
+                // Menghapus Chart Item
+                widget.chartObject.clear();
+
+              } catch (error) {
+                scaffold.showSnackBar(
+                  SnackBar(
+                    content: Text(error, textAlign: TextAlign.center),
+                  ),
+                );
+              }
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Text('Proses Transaksi', style: TextStyle(fontSize: 16)),
+                Icon(Icons.arrow_right)
+              ],
+            ),
+          );
   }
 }
