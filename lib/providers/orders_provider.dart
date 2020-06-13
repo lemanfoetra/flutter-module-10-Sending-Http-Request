@@ -24,10 +24,33 @@ class OrdersProvider with ChangeNotifier {
     return [..._order];
   }
 
+  Future<void> getOrderData() async {
+    const url = "https://flutter-shopapps.firebaseio.com/orders.json";
+    final List<OrderItem> orderLoaded = [];
+    final response = await http.get(url);
+    final extraxData = json.decode(response.body) as Map<String, dynamic>;
+    extraxData.forEach((key, value) {
+      orderLoaded.add(OrderItem(
+        id: key,
+        amount: value['amount'],
+        time: DateTime.parse(value['time']),
+        chartItem: (value['chartItem'] as List<dynamic>)
+            .map(
+              (isi) => ChartItem(
+                  id: isi['id'],
+                  title: isi['title'],
+                  quantity: isi['quantity'],
+                  price: isi['price']),
+            )
+            .toList(),
+      ));
+    });
 
+    _order = orderLoaded;
+    notifyListeners();
+  }
 
   Future<void> addOrder(List<ChartItem> chartItem, double total) async {
-
     const url = "https://flutter-shopapps.firebaseio.com/orders.json";
     final timestamp = DateTime.now();
     final response = await http.post(
@@ -35,15 +58,17 @@ class OrdersProvider with ChangeNotifier {
       body: json.encode({
         'amount': total,
         'time': timestamp.toIso8601String(),
-        'chartItem': chartItem.map((ci) => {
-          'id': ci.id,
-          'price': ci.price,
-          'title': ci.title,
-          'quantity' : ci.quantity,
-        }).toList(),
+        'chartItem': chartItem
+            .map((ci) => {
+                  'id': ci.id,
+                  'price': ci.price,
+                  'title': ci.title,
+                  'quantity': ci.quantity,
+                })
+            .toList(),
       }),
     );
-  
+
     _order.insert(
         0,
         OrderItem(
