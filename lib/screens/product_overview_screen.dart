@@ -24,19 +24,25 @@ class _ProductOverviewScreeenState extends State<ProductOverviewScreeen> {
 
   // _isloading untuk mengaktifkan loading indicator
   bool _isloading = false;
+  bool _isError = false;
 
   @override
   void didChangeDependencies() {
     if (isInit) {
-      setState(() {
-         _isloading = true;
-      });
-      var productPv = Provider.of<ProductsProvider>(context);
-      productPv.getListProduct().then((_) {
+      
         setState(() {
-          _isloading = false;
+          _isloading = true;
         });
-      });
+        var productPv = Provider.of<ProductsProvider>(context);
+        productPv.getListProduct().catchError((_){
+          _isError = true;
+        }).then((_) {
+          setState(() {
+            _isloading = false;
+          });
+        }).catchError((erro){
+          _isError = true;
+        });
     }
 
     isInit = false;
@@ -97,11 +103,13 @@ class _ProductOverviewScreeenState extends State<ProductOverviewScreeen> {
         ],
       ),
       drawer: AppDrawers(),
-      body: _isloading
-          ? Center(child: CircularProgressIndicator())
-          : ProductGrid(
-              isOnlyFavorite: onlyFavorite,
-            ),
+      body: _isError
+          ? Center(child: Text('Terjadi Kesalahan Jaringan'))
+          : _isloading
+              ? Center(child: CircularProgressIndicator())
+              : ProductGrid(
+                  isOnlyFavorite: onlyFavorite,
+                ),
     );
   }
 }
